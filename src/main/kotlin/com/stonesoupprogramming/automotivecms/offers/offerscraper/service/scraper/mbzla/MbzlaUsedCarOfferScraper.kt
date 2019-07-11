@@ -71,12 +71,14 @@ class MbzlaUsedCarOfferScraper(private val offerDao: OfferDao,
                 val imageUrl = rs["image"] ?: error("Image is missing")
                 val phoneNumber = rs["phoneNumber"] ?: error("Phone Number is missing")
                 val inventoryLink = rs["viewInventory"] ?: error("View Inventory is missing")
+                val priceTerm = rs["priceTerm"] ?: error("Price Term is missing")
 
                 Offer(disclaimer = disclaimer.trim(),
                         image_url = imageUrl.trim(),
                         phoneNumber = phoneNumber.trim(),
                         price=price.trim(),
                         title=title.trim(),
+                        priceTerm = priceTerm.trim(),
                         inventory_link = inventoryLink.trim(),
                         createdDate = Date(),
                         dealershipId = dealershipId,

@@ -16,6 +16,7 @@ data class Offer (
         var disclaimer: String? = null,
         var image_url: String? = null,
         var inventory_link: String? = null,
+        var priceTerm: String? = null,
 
         @Enumerated(EnumType.STRING)
         var offerType: OfferType? = null,
