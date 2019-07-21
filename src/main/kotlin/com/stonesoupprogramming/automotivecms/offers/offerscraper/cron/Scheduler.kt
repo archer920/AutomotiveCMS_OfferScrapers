@@ -11,15 +11,17 @@ import javax.annotation.PostConstruct
 class Scheduler(
         @Qualifier("MBZLA New Car") private val mbzlaNewCarOfferScrape: ScrapeService,
         @Qualifier("MBZLA Used Car") private val mbzlaUsedCarOfferScrape: ScrapeService,
-        @Qualifier("Car and Driver") private val carAndDriverScrape: ScrapeService) {
+        @Qualifier("Car and Driver") private val carAndDriverScrape: ScrapeService,
+        @Qualifier("Cars.com") private val carsScraper: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
     @PostConstruct
     fun scrapeOnStartup(){
         val futures = listOf(
+                carsScraper,
                 mbzlaNewCarOfferScrape,
-                mbzlaUsedCarOfferScrape, 
+                mbzlaUsedCarOfferScrape,
                 carAndDriverScrape
         ).map { it.scrape() }.toMutableList()
 

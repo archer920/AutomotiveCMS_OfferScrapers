@@ -1,8 +1,9 @@
 package com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.publication
 
+import com.stonesoupprogramming.automotivecms.offers.offerscraper.AppProperties
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.dao.PublishedContentDao
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.PublishedContent
-import com.stonesoupprogramming.automotivecms.offers.offerscraper.extensions.toDate
+import com.stonesoupprogramming.automotivecms.offers.offerscraper.functions.exists
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.createChromeDriver
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.navigate
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.runJq
@@ -11,12 +12,8 @@ import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scrape
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScrapeService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.ExitCodeGenerator
-import org.springframework.boot.SpringApplication
-import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
@@ -26,7 +23,7 @@ internal val animateJs = """
     });
 """.trimIndent()
 
-internal val scrapeJS = """
+private val scrapeJS = """
     const scrapedArticles = [];
 
     function toTitleCase(str){
@@ -69,7 +66,7 @@ internal val scrapeJS = """
 @Service
 @Qualifier("Car and Driver")
 class ScrapeCarAndDriver(private val publishedContentDao: PublishedContentDao,
-                         applicationContext: AbstractApplicationContext): ScrapeService {
+                         private val appProperties: AppProperties): ScrapeService {
 
     private val logger = LoggerFactory.getLogger(ScrapeCarAndDriver::class.java)
 
@@ -77,25 +74,11 @@ class ScrapeCarAndDriver(private val publishedContentDao: PublishedContentDao,
     private val publication = "car_driver"
     private val display_name = "Car and Driver"
     private val dtype = "Article"
-    private var host: String = ""
-
-    init {
-        if (System.getenv().containsKey("SYSTEM_HOST")){
-            host = System.getenv()["SYSTEM_HOST"]!!
-        } else {
-            logger.error("Please set the property SYSTEM_HOST")
-            SpringApplication.exit(applicationContext, ExitCodeGenerator { -1 })
-        }
-        if (!System.getenv().containsKey("PUBLICATION_EXP_DAYS")){
-            logger.error("Please set the property PUBLICATION_EXP_DAYS")
-            SpringApplication.exit(applicationContext, ExitCodeGenerator { -1 })
-        }
-    }
 
 
     @Async
     override fun scrape(): CompletableFuture<ScrapeResult> {
-        return createChromeDriver(headless = false).use { webDriver ->
+        return createChromeDriver().use { webDriver ->
             try {
                 webDriver.navigate(url)
                 webDriver.runJq()
@@ -113,7 +96,7 @@ class ScrapeCarAndDriver(private val publishedContentDao: PublishedContentDao,
                         PublishedContent(
                                 publication = publication,
                                 displayName = display_name,
-                                logo = (rs["logo"] ?: error("Logo is required")).replace("{{host}}", host),
+                                logo = (rs["logo"] ?: error("Logo is required")).replace("{{host}}", appProperties.host),
                                 image = (rs["image"] ?: error("Image is required")).split("?")[0],
                                 title = rs["title"],
                                 link = rs["link"],
@@ -126,16 +109,10 @@ class ScrapeCarAndDriver(private val publishedContentDao: PublishedContentDao,
                     } else {
                         null
                     }
-                }.filter {
-                    publishedContentDao.countByTitleAndSummaryAndLink(
-                        title = it.title!!,
-                        summary = it.summary!!,
-                        link = it.link!!
-                ) == 0 }.toList()
+                }.filter { publishedContentDao.exists(it) }.toList()
 
                 logger.info("Deleting old content")
-                val expirationDate = LocalDate.now().minusDays(System.getenv()["PUBLICATION_EXP_DAYS"]!!.toLong()).toDate()
-                publishedContentDao.deleteAllByDateBefore(expirationDate)
+                publishedContentDao.deleteAllByDateBefore(appProperties.expirationDate())
 
                 logger.info("Saving new content")
                 publishedContentDao.saveAll(publications)
