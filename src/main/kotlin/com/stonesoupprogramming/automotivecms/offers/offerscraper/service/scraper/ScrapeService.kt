@@ -2,7 +2,7 @@ package com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scrap
 
 import java.util.concurrent.CompletableFuture
 
-interface ScraperService {
+interface ScrapeService {
 
-    fun scrapeOffers(): CompletableFuture<ScrapeResult>
+    fun scrape(): CompletableFuture<ScrapeResult>
 }

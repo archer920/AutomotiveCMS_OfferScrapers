@@ -1,4 +1,4 @@
-package com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.mbzla
+package com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.offer.mbzla
 
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.dao.OfferDao
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.Offer
@@ -7,7 +7,7 @@ import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.creat
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.navigate
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.runScript
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScrapeResult
-import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScraperService
+import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScrapeService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ExitCodeGenerator
@@ -18,14 +18,14 @@ import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
-internal val newCarJS = """
+internal val usedCarJS = """
         let results = [];
-	    ${'$'}('.ncs-container').each(function(){
-		    let title = ${'$'}(this).find('.ncs-title').text();
-            let image = ${'$'}(this).find('.ncs-image').find('img').attr('src');
-            let price = ${'$'}(this).find('.ncs-price-label').first().text() + ' ' + ${'$'}(this).find('.ncs-price').first().text();
-            let priceTerm = ${'$'}(this).find('.ncs-price-block').find('.ncs-price-term').text();
-            let phoneNumber = ${'$'}(this).find('.ncs-phone').text().trim();
+	    ${'$'}('.ucs-container').each(function(){
+		    let title = ${'$'}(this).find('.ucs-title').text();
+            let image = ${'$'}(this).find('.ucs-image').find('img').attr('src');
+            let price = ${'$'}(this).find('.ucs-price-block').find('.ucs-price').text();
+            let priceTerm = ${'$'}(this).find('.ucs-price-term').text();
+            let phoneNumber = ${'$'}(this).find('.ucs-phone').text().trim();
             let viewInventory = ${'$'}(this).find('.dt-inventory-btn').attr('href');
             let disclaimer = ${'$'}(this).find('.ncs-disclaimer').text();
             results.push({title: title, image: image, price: price, priceTerm: priceTerm, phoneNumber: phoneNumber, viewInventory: viewInventory, disclaimer: disclaimer});
@@ -34,12 +34,12 @@ internal val newCarJS = """
 """.trimIndent()
 
 @Service
-@Qualifier("MBZLA New Car")
-class MbzlaNewCarOfferScraper(private val offerDao: OfferDao,
-                              applicationContext: AbstractApplicationContext): ScraperService{
+@Qualifier("MBZLA Used Car")
+class MbzlaUsedCarOfferScrape(private val offerDao: OfferDao,
+                              applicationContext: AbstractApplicationContext): ScrapeService{
 
     private val source = "MBZLA"
-    private val logger = LoggerFactory.getLogger(MbzlaNewCarOfferScraper::class.java)
+    private val logger = LoggerFactory.getLogger(MbzlaNewCarOfferScrape::class.java)
 
     final var dealershipId: Long = -1
 
@@ -55,13 +55,13 @@ class MbzlaNewCarOfferScraper(private val offerDao: OfferDao,
     }
 
     @Async
-    override fun scrapeOffers(): CompletableFuture<ScrapeResult>{
+    override fun scrape(): CompletableFuture<ScrapeResult>{
         val webDriver = createChromeDriver()
         return try {
-            webDriver.navigate("https://www.mbzla.com/dtw-new-mercedes-benz-lease-incentives-finance-offers-los-angeles-ca/")
+            webDriver.navigate("https://www.mbzla.com/dtw-pre-owned-vehicle-offers-los-angeles-ca/")
 
             @Suppress("UNCHECKED_CAST")
-            val resultSet = webDriver.runScript(newCarJS) as List<Map<String, String>>
+            val resultSet = webDriver.runScript(usedCarJS) as List<Map<String, String>>
 
             val offers = resultSet.map { rs ->
                 val vin = extractVinFromDisclaimer(rs["disclaimer"] ?: error("disclaimer is missing"))
@@ -76,18 +76,18 @@ class MbzlaNewCarOfferScraper(private val offerDao: OfferDao,
                 Offer(disclaimer = disclaimer.trim(),
                         image_url = imageUrl.trim(),
                         phoneNumber = phoneNumber.trim(),
-                        priceTerm = priceTerm.trim(),
                         price=price.trim(),
                         title=title.trim(),
+                        priceTerm = priceTerm.trim(),
                         inventory_link = inventoryLink.trim(),
                         createdDate = Date(),
                         dealershipId = dealershipId,
                         source = source,
-                        offerType = OfferType.NEW_CAR,
+                        offerType = OfferType.USED_CAR,
                         vin = vin.trim())
             }
             logger.info("Deleting old offers...")
-            offerDao.deleteAllByOfferType(OfferType.NEW_CAR)
+            offerDao.deleteAllByOfferType(OfferType.USED_CAR)
 
             logger.info("Saving new offers...")
             offerDao.saveAll(offers)
@@ -95,7 +95,7 @@ class MbzlaNewCarOfferScraper(private val offerDao: OfferDao,
             logger.info("Offer Scrape Complete")
             CompletableFuture.completedFuture(ScrapeResult.DONE)
         } catch (e: Exception){
-            logger.error("Failed to scrape new car offers", e)
+            logger.error("Failed to scrape used car offers", e)
             CompletableFuture.completedFuture(ScrapeResult.FAILED)
         } finally {
             webDriver.close()
@@ -112,34 +112,34 @@ class MbzlaNewCarOfferScraper(private val offerDao: OfferDao,
     }
 
     private fun extractPrice(price: String): String {
-        val forBuy = "forBuy"
         val monthly = "mo.$"
         var p = price
 
-        if (forBuy in p){
-            p = p.replace(forBuy, "")
-        }
         if (monthly in p){
-            p = p.replace(monthly, "")
+            val parts = p.split(".")
+            p = "Finance for ${parts[0]}. Buy for ${parts[1]}"
         }
-
         return p
     }
 
     private fun extractTitle(title: String): String {
-        val newText = "New"
-        return if (newText in title){
-            title.replace(newText, "")
-        } else {
-            title
+        val text = "Used"
+        val preOwned = "Pre-Owned"
+
+        var t = title
+        if (text in t){
+            t = t.replace(text, "")
         }
+        if (preOwned in t){
+            t = t.replace(preOwned, "")
+        }
+        return t
     }
 
     private fun extractVinFromDisclaimer(disclaimer: String): String {
         val vin = "Vin: "
         val model = ". Model"
         val dotFor = ". FOR"
-        val msrp = ". MSRP"
 
         var vinParts = disclaimer.split(vin)[1]
         if(model in vinParts) {
@@ -147,9 +147,6 @@ class MbzlaNewCarOfferScraper(private val offerDao: OfferDao,
         }
         if(dotFor in vinParts){
             vinParts = vinParts.split(dotFor)[0]
-        }
-        if(msrp in vinParts){
-            vinParts = vinParts.split(msrp)[0]
         }
 
         return vinParts
