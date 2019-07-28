@@ -15,7 +15,8 @@ class Scheduler(
         @Qualifier("Car and Driver") private val carAndDriverScrape: ScrapeService,
         @Qualifier("Cars.com") private val carsScraper: ScrapeService,
         @Qualifier("Edmunds") private val edmundsScraper: ScrapeService,
-        @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService) {
+        @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService,
+        @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
@@ -23,6 +24,7 @@ class Scheduler(
     fun scrapeOnStartup(){
         try {
             val futures = listOf(
+                    leftLaneNewsScraper,
                     jalopnikScraper,
                     edmundsScraper,
                     carsScraper,
@@ -76,5 +78,11 @@ class Scheduler(
     fun scrapeJalopnik(){
         logger.info("Starting Jalopnik Scrape")
         logger.info("Jalopnik Scrape Result = ${carAndDriverScrape.scrape().get()}")
+    }
+
+    @Scheduled(cron = "0 0 8 1/1 * ? *")
+    fun scrapeLeftLaneNews(){
+        logger.info("Starting Left Lane News Scrape")
+        logger.info("Left Lane News Scrape Result = ${carAndDriverScrape.scrape().get()}")
     }
 }

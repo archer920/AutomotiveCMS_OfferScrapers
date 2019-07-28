@@ -58,9 +58,6 @@ private val summaryJs = """
     return ${'$'}('.entry-content > p:nth-child(3)').text()
 """.trimIndent()
 
-private fun PublishedContent.exists(publishedContentDao: PublishedContentDao): Boolean =
-        publishedContentDao.countByTitleAndLink(title = title!!, link = link!!) == 0
-
 @Service
 @Qualifier("Jalopnik")
 class Jalopnik(private val publishedContentDao: PublishedContentDao,
@@ -83,8 +80,10 @@ class Jalopnik(private val publishedContentDao: PublishedContentDao,
                 webDriver.runScript(animateJs)
                 Thread.sleep(60 * 1000)
 
+                @Suppress("UNCHECKED_CAST")
                 val resultSet = webDriver.executeScript(scrapeJs) as List<Map<String, String>>
-                val publications = resultSet.mapNotNull { rs ->
+
+                val publications = resultSet.map { rs ->
                     PublishedContent(
                             publication = publication,
                             displayName = displayName,
@@ -96,7 +95,7 @@ class Jalopnik(private val publishedContentDao: PublishedContentDao,
                             date = Date(),
                             dismiss =  false,
                             dtype = dtype)
-                }.filter { it.exists(publishedContentDao) }.toList()
+                }.filter { publishedContentDao.exists(title = it.title!!, link = it.link!!) }.toList()
 
                 logger.info("Scraping summaries")
                 val futures = publications.map { pub ->
