@@ -53,7 +53,7 @@ class MotorTrend(private val publishedContentDao: PublishedContentDao,
     private val dtype = "Article"
 
     override fun scrape(): CompletableFuture<ScrapeResult> {
-        return createChromeDriver(false).use { rwd ->
+        return createChromeDriver().use { rwd ->
             try {
                 rwd.navigate(url)
                 rwd.runJq()
