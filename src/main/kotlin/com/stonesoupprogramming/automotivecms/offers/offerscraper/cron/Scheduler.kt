@@ -21,17 +21,21 @@ class Scheduler(
 
     @PostConstruct
     fun scrapeOnStartup(){
-        val futures = listOf(
-                jalopnikScraper,
-                edmundsScraper,
-                carsScraper,
-                mbzlaNewCarOfferScrape,
-                mbzlaUsedCarOfferScrape,
-                carAndDriverScrape
-        ).map { it.scrape() }.toMutableList()
+        try {
+            val futures = listOf(
+                    jalopnikScraper,
+                    edmundsScraper,
+                    carsScraper,
+                    mbzlaNewCarOfferScrape,
+                    mbzlaUsedCarOfferScrape,
+                    carAndDriverScrape
+            ).map { it.scrape() }
 
-        CompletableFuture.allOf(*futures.toTypedArray()).get()
-        futures.forEach { logger.info("Result of task = ${it.get()}"); futures.remove(it) }
+            CompletableFuture.allOf(*futures.toTypedArray()).get()
+            futures.forEach { logger.info("Result of task = ${it.get()}") }
+        } catch (e: Exception){
+            logger.error("Exception on bean startup. Will resume with scheduled scraping", e)
+        }
     }
 
     @Scheduled(cron = "0 0,30 * * * *")

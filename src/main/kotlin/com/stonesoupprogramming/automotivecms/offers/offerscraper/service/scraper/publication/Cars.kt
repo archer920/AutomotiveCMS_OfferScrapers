@@ -68,7 +68,7 @@ class CarsScraper(private val publishedContentDao: PublishedContentDao,
 
     @Async
     override fun scrape(): CompletableFuture<ScrapeResult> {
-        return createChromeDriver(false).use { webDriver ->
+        return createChromeDriver().use { webDriver ->
             try {
                 webDriver.navigate(url)
                 webDriver.runJq()
