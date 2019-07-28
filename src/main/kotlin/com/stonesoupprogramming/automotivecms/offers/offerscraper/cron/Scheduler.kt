@@ -21,7 +21,7 @@ class Scheduler(
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
-    @PostConstruct
+    //@PostConstruct
     fun scrapeOnStartup(){
         try {
             val futures = listOf(
