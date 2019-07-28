@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.util.concurrent.CompletableFuture
 import javax.annotation.PostConstruct
 
 @Component
@@ -12,23 +13,23 @@ class Scheduler(
         @Qualifier("MBZLA New Car") private val mbzlaNewCarOfferScrape: ScrapeService,
         @Qualifier("MBZLA Used Car") private val mbzlaUsedCarOfferScrape: ScrapeService,
         @Qualifier("Car and Driver") private val carAndDriverScrape: ScrapeService,
-        @Qualifier("Cars.com") private val carsScraper: ScrapeService) {
+        @Qualifier("Cars.com") private val carsScraper: ScrapeService,
+        @Qualifier("Edmunds") private val edmundsScraper: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
     @PostConstruct
     fun scrapeOnStartup(){
         val futures = listOf(
+                edmundsScraper,
                 carsScraper,
                 mbzlaNewCarOfferScrape,
                 mbzlaUsedCarOfferScrape,
                 carAndDriverScrape
         ).map { it.scrape() }.toMutableList()
 
-        while(futures.isNotEmpty()){
-            futures.filter { it.isDone }.forEach { logger.info("Result of task = ${it.get()}"); futures.remove(it) }
-            Thread.sleep(1000)
-        }
+        CompletableFuture.allOf(*futures.toTypedArray()).get()
+        futures.forEach { logger.info("Result of task = ${it.get()}"); futures.remove(it) }
     }
 
     @Scheduled(cron = "0 0,30 * * * *")
@@ -47,8 +48,21 @@ class Scheduler(
         logger.info("MBZLA Used Car Scrape Result = ${result.get()}")
     }
 
+    @Scheduled(cron = "0 0 8 1/1 * ? *")
     fun scrapeCarAndDriver(){
         logger.info("Starting Car and Driver Scrape")
         logger.info("Car and Driver Scrape Result = ${carAndDriverScrape.scrape().get()}")
+    }
+
+    @Scheduled(cron = "0 0 8 ? * MON *")
+    fun scrapeEdmunds() {
+        logger.info("Starting Edmunds Scrape")
+        logger.info("Edmunds Scrape Result = ${edmundsScraper.scrape().get()}")
+    }
+
+    @Scheduled(cron = "0 0 8 ? * MON *")
+    fun scrapeCars() {
+        logger.info("Starting Cars.com Scrape")
+        logger.info("Cars.com Scrape Result = ${carsScraper.scrape().get()}")
     }
 }

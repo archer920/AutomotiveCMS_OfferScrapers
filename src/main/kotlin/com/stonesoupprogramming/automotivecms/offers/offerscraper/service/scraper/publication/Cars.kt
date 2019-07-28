@@ -12,6 +12,7 @@ import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scrape
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScrapeService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -65,6 +66,7 @@ class CarsScraper(private val publishedContentDao: PublishedContentDao,
     private val display_name = "Cars.com"
     private val dtype = "Review"
 
+    @Async
     override fun scrape(): CompletableFuture<ScrapeResult> {
         return createChromeDriver(false).use { webDriver ->
             try {

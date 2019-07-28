@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.LocalDate
 import java.util.*
-import java.util.concurrent.Executor
+import java.util.concurrent.*
 
 data class AppProperties(val host: String, val publicationExpirationDate: Int) {
 
@@ -37,12 +37,29 @@ class OfferScraperApplication(private val applicationContext: AbstractApplicatio
     @Bean
     fun taskExecutor(): Executor {
         val executor = ThreadPoolTaskExecutor()
-        executor.corePoolSize = 2
-        executor.maxPoolSize = 2
+        executor.corePoolSize = Runtime.getRuntime().availableProcessors()
+        executor.maxPoolSize = Runtime.getRuntime().availableProcessors() * 2
         executor.setQueueCapacity(500)
-        executor.setThreadNamePrefix("OfferScrape-")
+        executor.setThreadNamePrefix("Scrape-")
         executor.initialize()
         return executor
+    }
+
+    @Bean
+    fun executorService(): ExecutorService {
+        var count = 0
+        return ThreadPoolExecutor(
+                Runtime.getRuntime().availableProcessors(),
+                Runtime.getRuntime().availableProcessors() * 4,
+                1,
+                TimeUnit.HOURS,
+                LinkedBlockingQueue(),
+                ThreadFactory { r ->
+                    val t = Thread(r)
+                    t.name = "Scrape-${count++}"
+                    t
+                }
+        )
     }
 
     @Bean
