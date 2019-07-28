@@ -13,12 +13,16 @@ val jquery: String by lazy {
     try {
         BufferedReader(
                 InputStreamReader(Any::class.java.getResourceAsStream("/jquery-3.3.1.js"))
-        ).use { it.readText() }
+        ).use {
+            it.readText()
+        }
     } catch (e: Exception){
         try {
             BufferedReader(
                     InputStreamReader(Any::class.java.getResourceAsStream("jquery-3.3.1.js"))
-            ).use { it.readText() }
+            ).use {
+                it.readText()
+            }
         } catch (e: Exception){
             logger.error("Failed to load jquery", e)
             throw e
