@@ -78,7 +78,7 @@ class EdmundsScraper(private val publishedContentDao: PublishedContentDao,
     @Async
     override fun scrape(): CompletableFuture<ScrapeResult> {
         return try {
-            val publications = createChromeDriver(false).use { webDriver ->
+            val publications = createChromeDriver().use { webDriver ->
                 webDriver.navigate(url)
                 webDriver.runJq()
                 webDriver.executeScript(scrapeJS)
@@ -123,7 +123,7 @@ class EdmundsScraper(private val publishedContentDao: PublishedContentDao,
     }
 
     private fun scrapeByline(publishedContent: PublishedContent): PublishedContent {
-        return createChromeDriver(false).use { remoteWebDriver ->
+        return createChromeDriver().use { remoteWebDriver ->
             remoteWebDriver.navigate(publishedContent.link!!)
             remoteWebDriver.runJq()
             @Suppress("UNCHECKED_CAST")

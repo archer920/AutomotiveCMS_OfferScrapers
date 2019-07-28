@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
-internal val animateJs = """
+private val animateJs = """
     ${'$'}('.full-item').each(function(){
         ${'$'}('html, body').animate({scrollTop: ${'$'}(this).offset().top}, 1000, 'linear')
     });

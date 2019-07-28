@@ -11,4 +11,6 @@ interface PublishedContentDao: JpaRepository<PublishedContent, Long> {
     fun deleteAllByDateBefore(date: Date)
 
     fun countByTitleAndSummaryAndLink(title: String, summary: String, link: String): Int
+
+    fun countByTitleAndLink(title: String, link: String): Int
 }
