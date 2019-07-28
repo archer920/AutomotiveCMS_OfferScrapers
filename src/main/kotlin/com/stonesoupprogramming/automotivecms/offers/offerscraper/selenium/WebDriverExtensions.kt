@@ -10,9 +10,20 @@ import java.io.InputStreamReader
 private val logger = LoggerFactory.getLogger("com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.WebDriverExtensions")
 
 val jquery: String by lazy {
-    BufferedReader(
-            InputStreamReader(Any::class.java.getResourceAsStream("/jquery-3.3.1.js"))
-    ).use { it.readText() }
+    try {
+        BufferedReader(
+                InputStreamReader(Any::class.java.getResourceAsStream("/jquery-3.3.1.js"))
+        ).use { it.readText() }
+    } catch (e: Exception){
+        try {
+            BufferedReader(
+                    InputStreamReader(Any::class.java.getResourceAsStream("jquery-3.3.1.js"))
+            ).use { it.readText() }
+        } catch (e: Exception){
+            logger.error("Failed to load jquery", e)
+            throw e
+        }
+    }
 }
 
 fun createChromeDriver(headless: Boolean = true): RemoteWebDriver {
