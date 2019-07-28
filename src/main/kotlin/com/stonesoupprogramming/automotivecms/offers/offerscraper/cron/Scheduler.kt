@@ -16,7 +16,8 @@ class Scheduler(
         @Qualifier("Cars.com") private val carsScraper: ScrapeService,
         @Qualifier("Edmunds") private val edmundsScraper: ScrapeService,
         @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService,
-        @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService) {
+        @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService,
+        @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
@@ -24,6 +25,7 @@ class Scheduler(
     fun scrapeOnStartup(){
         try {
             val futures = listOf(
+                    motorTrendScraper,
                     leftLaneNewsScraper,
                     jalopnikScraper,
                     edmundsScraper,

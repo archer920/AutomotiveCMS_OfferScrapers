@@ -89,7 +89,9 @@ class CarsScraper(private val publishedContentDao: PublishedContentDao,
                             dismiss = false,
                             dtype = dtype
                     )
-                }.filter { publishedContentDao.exists(it) }.toList()
+                }.filter {
+                    publishedContentDao.exists(title = it.title!!, summary = it.summary!!, link = it.link!!)
+                }.toList()
 
                 logger.info("Deleting old content")
                 publishedContentDao.deleteAllByDateBefore(appProperties.expirationDate())

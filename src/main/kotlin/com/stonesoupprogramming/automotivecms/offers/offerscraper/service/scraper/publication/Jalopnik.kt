@@ -106,7 +106,12 @@ class Jalopnik(private val publishedContentDao: PublishedContentDao,
                 publishedContentDao.deleteAllByDateBefore(appProperties.expirationDate())
 
                 logger.info("Saving new content")
-                val content = futures.map { it.get() }.filter { publishedContentDao.exists(it) }.toList()
+                val content = futures.map {
+                    it.get()
+                }.filter {
+                    publishedContentDao.exists(title = it.title!!, summary = it.summary!!, link = it.link!!)
+                }.toList()
+
                 publishedContentDao.saveAll(content)
 
                 CompletableFuture.completedFuture(ScrapeResult.DONE)

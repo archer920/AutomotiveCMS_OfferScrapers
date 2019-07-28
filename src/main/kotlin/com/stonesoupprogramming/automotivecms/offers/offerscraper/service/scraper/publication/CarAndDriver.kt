@@ -109,7 +109,9 @@ class ScrapeCarAndDriver(private val publishedContentDao: PublishedContentDao,
                     } else {
                         null
                     }
-                }.filter { publishedContentDao.exists(it) }.toList()
+                }.filter {
+                    publishedContentDao.exists(title = it.title!!, summary = it.summary!!, link = it.link!!)
+                }.toList()
 
                 logger.info("Deleting old content")
                 publishedContentDao.deleteAllByDateBefore(appProperties.expirationDate())

@@ -99,7 +99,9 @@ class EdmundsScraper(private val publishedContentDao: PublishedContentDao,
                             dtype = dtype,
                             rating = parseRating((rs["summary"] ?: error("Summary is missing") ))
                     )
-                }.filter { publishedContentDao.exists(it) }.toList()
+                }.filter {
+                    publishedContentDao.exists(title = it.title!!, summary = it.summary!!, link = it.link!!)
+                }.toList()
             }
 
             logger.info("Scraping the bylines")
