@@ -58,7 +58,7 @@ class Scheduler(
         logger.info("MBZLA Used Car Scrape Result = ${result.get()}")
     }
 
-    @Scheduled(cron = "0 0 8 1/1 * ? *")
+    //@Scheduled(cron = "0 0 8 1/1 * ? *")
     fun scrapeCarAndDriver(){
         logger.info("Starting Car and Driver Scrape")
         logger.info("Car and Driver Scrape Result = ${carAndDriverScrape.scrape().get()}")
