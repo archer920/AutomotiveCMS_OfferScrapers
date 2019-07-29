@@ -64,25 +64,25 @@ class Scheduler(
         logger.info("Car and Driver Scrape Result = ${carAndDriverScrape.scrape().get()}")
     }
 
-    @Scheduled(cron = "0 0 8 ? * MON *")
+    //@Scheduled(cron = "0 0 8 ? * MON *")
     fun scrapeEdmunds() {
         logger.info("Starting Edmunds Scrape")
         logger.info("Edmunds Scrape Result = ${edmundsScraper.scrape().get()}")
     }
 
-    @Scheduled(cron = "0 0 8 ? * MON *")
+    //@Scheduled(cron = "0 0 8 ? * MON *")
     fun scrapeCars() {
         logger.info("Starting Cars.com Scrape")
         logger.info("Cars.com Scrape Result = ${carsScraper.scrape().get()}")
     }
 
-    @Scheduled(cron = "0 0 8 1/1 * ? *")
+    //@Scheduled(cron = "0 0 8 1/1 * ? *")
     fun scrapeJalopnik(){
         logger.info("Starting Jalopnik Scrape")
         logger.info("Jalopnik Scrape Result = ${carAndDriverScrape.scrape().get()}")
     }
 
-    @Scheduled(cron = "0 0 8 1/1 * ? *")
+    //@Scheduled(cron = "0 0 8 1/1 * ? *")
     fun scrapeLeftLaneNews(){
         logger.info("Starting Left Lane News Scrape")
         logger.info("Left Lane News Scrape Result = ${carAndDriverScrape.scrape().get()}")
