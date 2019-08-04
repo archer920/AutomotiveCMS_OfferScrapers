@@ -9,6 +9,7 @@ import java.io.*
 private val logger = LoggerFactory.getLogger("com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.WebDriverExtensions")
 
 val jquery: String by lazy {
+    logger.info("Loading jquery-3.3.1.js")
     try {
         BufferedReader(
                 InputStreamReader(Any::class.java.getResourceAsStream("/jquery-3.3.1.js"))
