@@ -4,9 +4,15 @@ import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scrape
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.scheduling.support.CronSequenceGenerator
 import org.springframework.stereotype.Component
-import java.util.concurrent.CompletableFuture
 import javax.annotation.PostConstruct
+
+private const val EVERY_30_MINUTES = "0 0,30 * * * *"
+private const val DAILY = "0 0 8 ? * MON-FRI"
+private const val WEEKLY = "0 0 8 ? * MON"
+
+private fun String.isValidCron(): Boolean = CronSequenceGenerator.isValidExpression(this)
 
 @Component
 class Scheduler(
@@ -21,28 +27,39 @@ class Scheduler(
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
-    //@PostConstruct
-    fun scrapeOnStartup(){
-        try {
-            val futures = listOf(
-                    motorTrendScraper,
-                    leftLaneNewsScraper,
-                    jalopnikScraper,
-                    edmundsScraper,
-                    carsScraper,
-                    mbzlaNewCarOfferScrape,
-                    mbzlaUsedCarOfferScrape,
-                    carAndDriverScrape
-            ).map { it.scrape() }
+    @PostConstruct
+    fun scrapeOnStartup() {
+        if (!EVERY_30_MINUTES.isValidCron()){
+            throw IllegalArgumentException("$EVERY_30_MINUTES is not a valid cron expression")
+        }
+        if (!DAILY.isValidCron()){
+            throw IllegalArgumentException("$DAILY is not a valid cron expression")
+        }
+        if (!WEEKLY.isValidCron()){
+            throw IllegalArgumentException("$EVERY_30_MINUTES is not a valid cron expression")
+        }
 
-            CompletableFuture.allOf(*futures.toTypedArray()).get()
-            futures.forEach { logger.info("Result of task = ${it.get()}") }
+        try {
+            mapOf(
+                    "Motor Trend" to motorTrendScraper,
+                    "Left Lane News" to leftLaneNewsScraper,
+                    "Jalopnik" to jalopnikScraper,
+                    "Edmunds" to edmundsScraper,
+                    "Cars.com" to carsScraper,
+                    "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
+                    "Car and Driver" to carAndDriverScrape
+            ).forEach {
+                it.value.scrape().thenAccept { sr ->
+                    logger.info("Result of ${it.key} = $sr")
+                }
+            }
         } catch (e: Exception){
             logger.error("Exception on bean startup. Will resume with scheduled scraping", e)
         }
     }
 
-    @Scheduled(cron = "0 0,30 * * * *")
+    @Scheduled(cron = EVERY_30_MINUTES)
     fun scrapeMbzlaNew(){
         logger.info("Starting MBZLA New Car Scrape")
         val result = mbzlaNewCarOfferScrape.scrape()
@@ -50,7 +67,7 @@ class Scheduler(
         logger.info("MBZLA New Car Scrape Result = ${result.get()}")
     }
 
-    @Scheduled(cron = "0 0,30 * * * *")
+    @Scheduled(cron = EVERY_30_MINUTES)
     fun scrapeMbzlaUsed(){
         logger.info("Starting MBZLA Used Car Scrape")
         val result = mbzlaUsedCarOfferScrape.scrape()
@@ -58,31 +75,31 @@ class Scheduler(
         logger.info("MBZLA Used Car Scrape Result = ${result.get()}")
     }
 
-    //@Scheduled(cron = "0 0 8 1/1 * ? *")
+    @Scheduled(cron = DAILY)
     fun scrapeCarAndDriver(){
         logger.info("Starting Car and Driver Scrape")
         logger.info("Car and Driver Scrape Result = ${carAndDriverScrape.scrape().get()}")
     }
 
-    //@Scheduled(cron = "0 0 8 ? * MON *")
+    @Scheduled(cron = WEEKLY)
     fun scrapeEdmunds() {
         logger.info("Starting Edmunds Scrape")
         logger.info("Edmunds Scrape Result = ${edmundsScraper.scrape().get()}")
     }
 
-    //@Scheduled(cron = "0 0 8 ? * MON *")
+    @Scheduled(cron = DAILY)
     fun scrapeCars() {
         logger.info("Starting Cars.com Scrape")
         logger.info("Cars.com Scrape Result = ${carsScraper.scrape().get()}")
     }
 
-    //@Scheduled(cron = "0 0 8 1/1 * ? *")
+    @Scheduled(cron = DAILY)
     fun scrapeJalopnik(){
         logger.info("Starting Jalopnik Scrape")
         logger.info("Jalopnik Scrape Result = ${carAndDriverScrape.scrape().get()}")
     }
 
-    //@Scheduled(cron = "0 0 8 1/1 * ? *")
+    @Scheduled(cron = DAILY)
     fun scrapeLeftLaneNews(){
         logger.info("Starting Left Lane News Scrape")
         logger.info("Left Lane News Scrape Result = ${carAndDriverScrape.scrape().get()}")
