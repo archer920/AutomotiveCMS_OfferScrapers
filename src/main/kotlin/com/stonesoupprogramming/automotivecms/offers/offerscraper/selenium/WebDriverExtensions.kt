@@ -18,8 +18,9 @@ val jquery: String by lazy {
         }
     } catch (e: Exception){
         try {
+            logger.info("Working directory is " + System.getProperty("user.dir"))
             BufferedReader(
-                    InputStreamReader(Any::class.java.getResourceAsStream("jquery-3.3.1.js"))
+                    InputStreamReader(Any::class.java.getResourceAsStream(System.getProperty("user.dir") + "/src/main/resources/jquery-3.3.1.js"))
             ).use {
                 it.readText()
             }
