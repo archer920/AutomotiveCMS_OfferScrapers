@@ -50,6 +50,7 @@ class Scheduler(
                     "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
                     "Car and Driver" to carAndDriverScrape
             ).forEach {
+                logger.info("Starting scrape for ${it.key}")
                 it.value.scrape().thenAccept { sr ->
                     logger.info("Result of ${it.key} = $sr")
                 }
