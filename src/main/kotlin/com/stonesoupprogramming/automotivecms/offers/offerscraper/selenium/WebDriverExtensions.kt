@@ -4,8 +4,7 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.slf4j.LoggerFactory
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.*
 
 private val logger = LoggerFactory.getLogger("com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.WebDriverExtensions")
 
@@ -18,9 +17,12 @@ val jquery: String by lazy {
         }
     } catch (e: Exception){
         try {
-            logger.info("Working directory is " + System.getProperty("user.dir"))
+            val f = File(System.getProperty("user.dir") + "/src/main/resources/jquery-3.3.1.js")
+            if (!f.exists()){
+                logger.info("FIXME: $f does not exist")
+            }
             BufferedReader(
-                    InputStreamReader(Any::class.java.getResourceAsStream(System.getProperty("user.dir") + "/src/main/resources/jquery-3.3.1.js"))
+                    FileReader(f)
             ).use {
                 it.readText()
             }
