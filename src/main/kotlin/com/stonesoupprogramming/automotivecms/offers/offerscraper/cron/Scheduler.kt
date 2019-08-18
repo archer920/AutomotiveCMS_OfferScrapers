@@ -23,7 +23,8 @@ class Scheduler(
         @Qualifier("Edmunds") private val edmundsScraper: ScrapeService,
         @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService,
         @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService,
-        @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService) {
+        @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService,
+        @Qualifier("Torrence New Car") private val torrenceNewCarOfferScrape: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
@@ -41,6 +42,7 @@ class Scheduler(
 
         try {
             mapOf(
+                    "Torrence" to torrenceNewCarOfferScrape,
                     "Motor Trend" to motorTrendScraper,
                     "Left Lane News" to leftLaneNewsScraper,
                     "Jalopnik" to jalopnikScraper,
@@ -58,6 +60,14 @@ class Scheduler(
         } catch (e: Exception){
             logger.error("Exception on bean startup. Will resume with scheduled scraping", e)
         }
+    }
+
+    @Scheduled(cron = EVERY_30_MINUTES)
+    fun scrapeTorrenceNew() {
+        logger.info("Starting Torrence New Car Scrape")
+        val result = torrenceNewCarOfferScrape.scrape()
+
+        logger.info("Torrence New Car Scrape Result = ${result.get()}")
     }
 
     @Scheduled(cron = EVERY_30_MINUTES)

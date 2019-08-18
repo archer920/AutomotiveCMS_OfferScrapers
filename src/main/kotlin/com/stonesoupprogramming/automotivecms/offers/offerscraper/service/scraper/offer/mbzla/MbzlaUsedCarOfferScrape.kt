@@ -87,7 +87,7 @@ class MbzlaUsedCarOfferScrape(private val offerDao: OfferDao,
                         vin = vin.trim())
             }
             logger.info("Deleting old offers...")
-            offerDao.deleteAllByOfferType(OfferType.USED_CAR)
+            offerDao.deleteAllBySourceAndOfferType(source = source, offerType = OfferType.USED_CAR)
 
             logger.info("Saving new offers...")
             offerDao.saveAll(offers)
