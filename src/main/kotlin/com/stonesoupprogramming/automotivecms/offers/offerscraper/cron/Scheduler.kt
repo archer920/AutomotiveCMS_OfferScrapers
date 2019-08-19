@@ -24,7 +24,8 @@ class Scheduler(
         @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService,
         @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService,
         @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService,
-        @Qualifier("Torrence New Car") private val torrenceNewCarOfferScrape: ScrapeService) {
+        @Qualifier("Torrence New Car") private val torrenceNewCarOfferScrape: ScrapeService,
+        @Qualifier("Torrence Used Car") private val torrenceUsedCarOfferScrape: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
@@ -42,7 +43,8 @@ class Scheduler(
 
         try {
             mapOf(
-                    "Torrence" to torrenceNewCarOfferScrape,
+                    "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
+                    "Torrence New Car Offers" to torrenceNewCarOfferScrape,
                     "Motor Trend" to motorTrendScraper,
                     "Left Lane News" to leftLaneNewsScraper,
                     "Jalopnik" to jalopnikScraper,

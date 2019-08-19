@@ -17,6 +17,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
+import java.util.*
 import java.util.concurrent.*
 import java.util.function.Supplier
 
@@ -127,7 +128,8 @@ private fun scrapeOffer(pageLink: String): Offer? {
                 price = price,
                 priceTerm = term,
                 vin = vin,
-                source = source
+                source = source,
+                createdDate = Date()
         )
     } catch (e: Exception) {
         logger.error("Failed to scrape offer on page $pageLink", e)
