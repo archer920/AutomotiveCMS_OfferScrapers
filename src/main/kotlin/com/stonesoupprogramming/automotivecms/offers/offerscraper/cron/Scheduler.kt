@@ -73,6 +73,14 @@ class Scheduler(
     }
 
     @Scheduled(cron = EVERY_30_MINUTES)
+    fun scrapeTorrenceUsed() {
+        logger.info("Starting Torrence Used Car Scrape")
+        val result = torrenceUsedCarOfferScrape.scrape()
+
+        logger.info("Torrence Used Car Scrape Result = ${result.get()}")
+    }
+
+    @Scheduled(cron = EVERY_30_MINUTES)
     fun scrapeMbzlaNew(){
         logger.info("Starting MBZLA New Car Scrape")
         val result = mbzlaNewCarOfferScrape.scrape()

@@ -27,7 +27,7 @@ private const val source = "TORRENCE"
 private val logger = LoggerFactory.getLogger("com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.offer.torrence.TorrenceUsedCarOfferScrapeKt")
 
 private fun allOfferPages(): List<String> {
-    val driver = createChromeDriver(headless = false)
+    val driver = createChromeDriver()
     try {
         driver.get(startPage)
         return driver.findElementsByClassName("view-link").map { it.getAttribute("href") }
@@ -40,11 +40,16 @@ private fun allOfferPages(): List<String> {
 }
 
 private fun getDisclaimer(driver: RemoteWebDriver): String {
-    driver.switchTo().frame("mmd-frame-frame2")
-    driver.findElementByCssSelector("#dr-deal-summary-link").click()
-    val disclaimer = driver.findElementByCssSelector("#ds-short-disclaimer").text
-    driver.switchTo().parentFrame()
-    return disclaimer
+    try {
+        driver.switchTo().frame("mmd-frame-frame2")
+        driver.findElementByCssSelector("#dr-deal-summary-link").click()
+        val disclaimer = driver.findElementByCssSelector("#ds-short-disclaimer").text
+        driver.switchTo().parentFrame()
+        return disclaimer
+    } catch (e: org.openqa.selenium.NoSuchFrameException){
+        logger.error("No frame found on page ${driver.currentUrl}", e)
+        throw e
+    }
 }
 
 private fun getMonthlyPayment(driver: RemoteWebDriver): String {
@@ -63,7 +68,7 @@ private fun getPaymentTerms(driver: RemoteWebDriver): String {
 }
 
 private fun scrapeOffer(inventoryPage: String): Offer {
-    return createChromeDriver(false).use { driver: RemoteWebDriver ->
+    return createChromeDriver().use { driver: RemoteWebDriver ->
         driver.navigate(inventoryPage)
         val title = driver.findElementByCssSelector("#vehicle-title1-app-root > h1").text.replace("\n", " ")
         val disclaimer = getDisclaimer(driver)
@@ -126,7 +131,7 @@ class TorrenceUsedCarOfferScrape(private val offerDao: OfferDao,
             logger.info("Offer Scrape Complete")
             CompletableFuture.completedFuture(ScrapeResult.DONE)
         } catch (e: Exception){
-            logger.error("Failed to scrape new car offers", e)
+            logger.error("Failed to scrape used car offers", e)
             CompletableFuture.completedFuture(ScrapeResult.FAILED)
         }
     }
