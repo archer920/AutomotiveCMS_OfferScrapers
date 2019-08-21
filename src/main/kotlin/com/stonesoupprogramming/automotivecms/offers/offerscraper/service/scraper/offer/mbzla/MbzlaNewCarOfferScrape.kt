@@ -3,6 +3,7 @@ package com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scrap
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.dao.OfferDao
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.Offer
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.OfferType
+import com.stonesoupprogramming.automotivecms.offers.offerscraper.functions.removeRepeatedString
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.createChromeDriver
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.navigate
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.runScript
@@ -21,7 +22,7 @@ import java.util.concurrent.CompletableFuture
 internal val newCarJS = """
         let results = [];
 	    ${'$'}('.ncs-container').each(function(){
-		    let title = ${'$'}(this).find('.ncs-title').text();
+		    let title = ${'$'}(this).find('.ncs-title').find('h3').text();
             let image = ${'$'}(this).find('.ncs-image').find('img').attr('src');
             let price = ${'$'}(this).find('.ncs-price-label').first().text() + ' ' + ${'$'}(this).find('.ncs-price').first().text();
             let priceTerm = ${'$'}(this).find('.ncs-price-block').find('.ncs-price-term').text();
@@ -65,7 +66,7 @@ class MbzlaNewCarOfferScrape(private val offerDao: OfferDao,
 
             val offers = resultSet.map { rs ->
                 val vin = extractVinFromDisclaimer(rs["disclaimer"] ?: error("disclaimer is missing"))
-                val title = extractTitle(rs["title"] ?: error("Title is missing"))
+                val title = removeRepeatedString(extractTitle(rs["title"] ?: error("Title is missing")))
                 val price = extractPrice(rs["price"] ?: error("Price is missing"))
                 val disclaimer = extractDisclaimer(rs["disclaimer"] ?: error("disclaimer is missing"))
                 val imageUrl = rs["image"] ?: error("Image is missing")
@@ -155,3 +156,5 @@ class MbzlaNewCarOfferScrape(private val offerDao: OfferDao,
         return vinParts
     }
 }
+
+

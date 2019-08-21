@@ -8,9 +8,10 @@
         <version>2.1.6.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
     <groupId>com.stonesoupprogramming.automotivecms.offers</groupId>
     <artifactId>offer-scraper</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>08212019</version>
     <name>offer-scraper</name>
     <description>Controls Scraping Offers for Email Blast</description>
 

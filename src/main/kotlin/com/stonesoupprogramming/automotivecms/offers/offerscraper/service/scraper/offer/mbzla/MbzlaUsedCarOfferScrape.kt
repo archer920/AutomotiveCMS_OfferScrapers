@@ -3,6 +3,7 @@ package com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scrap
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.dao.OfferDao
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.Offer
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.OfferType
+import com.stonesoupprogramming.automotivecms.offers.offerscraper.functions.removeRepeatedString
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.createChromeDriver
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.navigate
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.runScript
@@ -65,7 +66,7 @@ class MbzlaUsedCarOfferScrape(private val offerDao: OfferDao,
 
             val offers = resultSet.map { rs ->
                 val vin = extractVinFromDisclaimer(rs["disclaimer"] ?: error("disclaimer is missing"))
-                val title = extractTitle(rs["title"] ?: error("Title is missing"))
+                val title = removeRepeatedString(extractTitle(rs["title"] ?: error("Title is missing")))
                 val price = extractPrice(rs["price"] ?: error("Price is missing"))
                 val disclaimer = extractDisclaimer(rs["disclaimer"] ?: error("disclaimer is missing"))
                 val imageUrl = rs["image"] ?: error("Image is missing")
