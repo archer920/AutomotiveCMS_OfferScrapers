@@ -42,13 +42,13 @@ class Scheduler(
         try {
             mapOf(
                     "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
-                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
-                    "Motor Trend" to motorTrendScraper,
-                    "Left Lane News" to leftLaneNewsScraper,
-                    "Jalopnik" to jalopnikScraper,
-                    "Edmunds" to edmundsScraper,
-                    "Cars.com" to carsScraper,
-                    "Car and Driver" to carAndDriverScrape
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape//,
+//                    "Motor Trend" to motorTrendScraper,
+//                    "Left Lane News" to leftLaneNewsScraper,
+//                    "Jalopnik" to jalopnikScraper,
+//                    "Edmunds" to edmundsScraper,
+//                    "Cars.com" to carsScraper,
+//                    "Car and Driver" to carAndDriverScrape
             ).forEach {
                 logger.info("Starting scrape for ${it.key}")
                 it.value.scrape().thenAccept { sr ->
