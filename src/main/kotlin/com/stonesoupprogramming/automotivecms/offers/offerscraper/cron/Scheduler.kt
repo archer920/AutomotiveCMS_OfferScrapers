@@ -45,13 +45,13 @@ class Scheduler(
             mapOf(
                     "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
                     "Torrence New Car Offers" to torrenceNewCarOfferScrape,
+                    "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
                     "Motor Trend" to motorTrendScraper,
                     "Left Lane News" to leftLaneNewsScraper,
                     "Jalopnik" to jalopnikScraper,
                     "Edmunds" to edmundsScraper,
                     "Cars.com" to carsScraper,
-                    "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
-                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
                     "Car and Driver" to carAndDriverScrape
             ).forEach {
                 logger.info("Starting scrape for ${it.key}")
