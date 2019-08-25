@@ -65,7 +65,7 @@ class TorrenceNewCarOfferScrape(private val offerDao: OfferDao,
 }
 
 private fun scrapeOffers(): List<Offer> {
-    val driver = createChromeDriver(false)
+    val driver = createChromeDriver()
     return try {
         driver.navigate("https://www.torrancetoyota.com/promotions/new/index.htm")
 

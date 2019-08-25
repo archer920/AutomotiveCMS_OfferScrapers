@@ -41,18 +41,14 @@ class Scheduler(
             throw IllegalArgumentException("$EVERY_30_MINUTES is not a valid cron expression")
         }
 
+        //Offers are business critical and should scrape on startup
+        //Publications can run on a normal schedule
         try {
             mapOf(
                     "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
                     "Torrence New Car Offers" to torrenceNewCarOfferScrape,
                     "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
-                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
-                    "Motor Trend" to motorTrendScraper,
-                    "Left Lane News" to leftLaneNewsScraper,
-                    "Jalopnik" to jalopnikScraper,
-                    "Edmunds" to edmundsScraper,
-                    "Cars.com" to carsScraper,
-                    "Car and Driver" to carAndDriverScrape
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape
             ).forEach {
                 logger.info("Starting scrape for ${it.key}")
                 it.value.scrape().thenAccept { sr ->
