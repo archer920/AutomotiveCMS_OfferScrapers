@@ -1,10 +1,16 @@
 package com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium
 
+import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.remote.RemoteWebDriver
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.support.ui.WebDriverWait
 import org.slf4j.LoggerFactory
-import java.io.*
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileReader
+import java.io.InputStreamReader
 
 private val logger = LoggerFactory.getLogger("com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.WebDriverExtensions")
 
@@ -73,4 +79,8 @@ fun <R> RemoteWebDriver.use(block: (RemoteWebDriver) -> R): R {
     } finally {
         this.close()
     }
+}
+
+fun waitUntilClickable(driver: RemoteWebDriver, webElement: WebElement, timeout: Long = 10){
+    WebDriverWait(driver, timeout).until(ExpectedConditions.elementToBeClickable(webElement))
 }

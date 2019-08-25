@@ -11,7 +11,7 @@
 
     <groupId>com.stonesoupprogramming.automotivecms.offers</groupId>
     <artifactId>offer-scraper</artifactId>
-    <version>08212019</version>
+    <version>08252019</version>
     <name>offer-scraper</name>
     <description>Controls Scraping Offers for Email Blast</description>
 

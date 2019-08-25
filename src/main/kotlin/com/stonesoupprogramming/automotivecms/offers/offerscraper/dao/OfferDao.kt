@@ -8,6 +8,5 @@ import javax.transaction.Transactional
 interface OfferDao: JpaRepository<Offer, Long> {
 
     @Transactional
-    fun deleteAllByOfferType(offerType: OfferType)
-
+    fun deleteAllBySourceAndOfferType(source: String, offerType: OfferType)
 }

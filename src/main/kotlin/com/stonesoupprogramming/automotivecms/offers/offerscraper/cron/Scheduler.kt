@@ -23,7 +23,9 @@ class Scheduler(
         @Qualifier("Edmunds") private val edmundsScraper: ScrapeService,
         @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService,
         @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService,
-        @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService) {
+        @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService,
+        @Qualifier("Torrence New Car") private val torrenceNewCarOfferScrape: ScrapeService,
+        @Qualifier("Torrence Used Car") private val torrenceUsedCarOfferScrape: ScrapeService) {
 
     private val logger = LoggerFactory.getLogger(Scheduler::class.java)
 
@@ -39,16 +41,14 @@ class Scheduler(
             throw IllegalArgumentException("$EVERY_30_MINUTES is not a valid cron expression")
         }
 
+        //Offers are business critical and should scrape on startup
+        //Publications can run on a normal schedule
         try {
             mapOf(
+                    "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
+                    "Torrence New Car Offers" to torrenceNewCarOfferScrape,
                     "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
-                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape//,
-//                    "Motor Trend" to motorTrendScraper,
-//                    "Left Lane News" to leftLaneNewsScraper,
-//                    "Jalopnik" to jalopnikScraper,
-//                    "Edmunds" to edmundsScraper,
-//                    "Cars.com" to carsScraper,
-//                    "Car and Driver" to carAndDriverScrape
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape
             ).forEach {
                 logger.info("Starting scrape for ${it.key}")
                 it.value.scrape().thenAccept { sr ->
@@ -58,6 +58,22 @@ class Scheduler(
         } catch (e: Exception){
             logger.error("Exception on bean startup. Will resume with scheduled scraping", e)
         }
+    }
+
+    @Scheduled(cron = EVERY_30_MINUTES)
+    fun scrapeTorrenceNew() {
+        logger.info("Starting Torrence New Car Scrape")
+        val result = torrenceNewCarOfferScrape.scrape()
+
+        logger.info("Torrence New Car Scrape Result = ${result.get()}")
+    }
+
+    @Scheduled(cron = EVERY_30_MINUTES)
+    fun scrapeTorrenceUsed() {
+        logger.info("Starting Torrence Used Car Scrape")
+        val result = torrenceUsedCarOfferScrape.scrape()
+
+        logger.info("Torrence Used Car Scrape Result = ${result.get()}")
     }
 
     @Scheduled(cron = EVERY_30_MINUTES)
