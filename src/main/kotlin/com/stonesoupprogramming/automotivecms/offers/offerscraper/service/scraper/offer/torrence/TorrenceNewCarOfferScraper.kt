@@ -47,7 +47,7 @@ class TorrenceNewCarOfferScrape(private val offerDao: OfferDao,
     @Async
     override fun scrape(): CompletableFuture<ScrapeResult> {
         return try {
-            val offers = scrapeOffers()
+            val offers = scrapeOffers(dealershipId)
 
             logger.info("Deleting old offers")
             offerDao.deleteAllBySourceAndOfferType(source=source, offerType = OfferType.NEW_CAR)
@@ -64,8 +64,9 @@ class TorrenceNewCarOfferScrape(private val offerDao: OfferDao,
     }
 }
 
-private fun scrapeOffers(): List<Offer> {
-    val driver = createChromeDriver()
+private fun scrapeOffers(dealershipId: Long): List<Offer> {
+    //This has to stay headless because we are using WebElement.isVisible
+    val driver = createChromeDriver(false)
     return try {
         driver.navigate("https://www.torrancetoyota.com/promotions/new/index.htm")
 
@@ -84,8 +85,6 @@ private fun scrapeOffers(): List<Offer> {
             val priceRaw = dialog.findElement(By.className("promo-short-description")).text.replace("\n", "  ")
             val inventoryLink = dialog.findElement(By.className("promo-cta-link")).getAttribute("href")
 
-            println("$title - $priceRaw")
-
             val price = if (priceRaw.contains("for")){
                 priceRaw.split("for")[1].trim()
             } else {
@@ -100,6 +99,7 @@ private fun scrapeOffers(): List<Offer> {
             closeDialog(dialog, driver)
 
             Offer(
+                    dealershipId = dealershipId,
                     title = title,
                     createdDate = Date(),
                     disclaimer = disclaimer,
@@ -117,19 +117,34 @@ private fun scrapeOffers(): List<Offer> {
         logger.error("Failed to scrape TorrenceNewCar offers", e)
         throw e
     } finally {
-        driver.quit()
+        driver.close()
     }
 }
 
+val referenceMap: MutableMap<String, Int> = mutableMapOf()
 private fun openDialog(driver: RemoteWebDriver, link: WebElement): WebElement{
-    val dataTitle = link.getAttribute("data-promo-tracking-label")
-    val selector = "a[data-promo-tracking-label='$dataTitle']"
-    driver.runScript("""
-            var elems = document.querySelectorAll("$selector");
-            elems[elems.length - 1].click();
-        """.trimIndent())
-    Thread.sleep(1500)
+    synchronized(referenceMap){
+        val dataTitle = link.getAttribute("data-promo-tracking-label")
+        val selector = "a[data-promo-tracking-label='$dataTitle']"
 
+        println("Reference map has $dataTitle: ${referenceMap.containsKey(dataTitle)}")
+        val index = if (referenceMap.containsKey(dataTitle)){
+            val i = referenceMap[dataTitle]!!
+            referenceMap[dataTitle] = i + 1
+            referenceMap[dataTitle]
+        } else {
+            referenceMap[dataTitle] = 0
+            0
+        }
+
+        driver.runScript("""
+            var elems = document.querySelectorAll("$selector");
+            elems[$index].click();
+        """.trimIndent())
+
+    }
+
+    Thread.sleep(1500)
     return driver.findElementsByCssSelector("div[role=dialog]").first { it.isDisplayed }
 }
 
@@ -148,7 +163,7 @@ private fun closeDialog(dialog: WebElement, driver: RemoteWebDriver){
 }
 
 fun main(args: Array<String>){
-    scrapeOffers().forEach {
-        println(it)
+    scrapeOffers(1).forEach {
+        println("${it.title} - ${it.price} - ${it.priceTerm}")
     }
 }

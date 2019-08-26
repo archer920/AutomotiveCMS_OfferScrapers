@@ -6,8 +6,10 @@ import com.stonesoupprogramming.automotivecms.offers.offerscraper.entity.OfferTy
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.createChromeDriver
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.navigate
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.use
+import com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium.waitUntilAllPresent
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScrapeResult
 import com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.ScrapeService
+import org.openqa.selenium.By
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -19,17 +21,17 @@ import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
-import java.util.function.Supplier
 
-const val startPage = "https://www.torrancetoyota.com/featured-vehicles/used.htm"
+private const val startPage = "https://www.torrancetoyota.com/featured-vehicles/used.htm"
 private const val source = "TORRENCE"
 
 private val logger = LoggerFactory.getLogger("com.stonesoupprogramming.automotivecms.offers.offerscraper.service.scraper.offer.torrence.TorrenceUsedCarOfferScrapeKt")
 
 private fun allOfferPages(): List<String> {
-    val driver = createChromeDriver()
+    val driver = createChromeDriver(false)
     try {
         driver.get(startPage)
+        waitUntilAllPresent(driver, By.className("view-link"))
         return driver.findElementsByClassName("view-link").map { it.getAttribute("href") }
     } catch (e: Exception){
         logger.error("Failed to scrape offerPages from $startPage", e)
@@ -67,8 +69,8 @@ private fun getPaymentTerms(driver: RemoteWebDriver): String {
     return term
 }
 
-private fun scrapeOffer(inventoryPage: String): Offer {
-    return createChromeDriver().use { driver: RemoteWebDriver ->
+private fun scrapeOffer(inventoryPage: String, dealershipId: Long): Offer {
+    return createChromeDriver(false).use { driver: RemoteWebDriver ->
         driver.navigate(inventoryPage)
         val title = driver.findElementByCssSelector("#vehicle-title1-app-root > h1").text.replace("\n", " ")
         val disclaimer = getDisclaimer(driver)
@@ -81,6 +83,7 @@ private fun scrapeOffer(inventoryPage: String): Offer {
         val vin = driver.findElementByCssSelector("#vehicle-title1-app-root > ul > li:nth-child(1)").text.replace("Vin: ", "")
 
         Offer(
+                dealershipId = dealershipId,
                 title = title,
                 disclaimer = disclaimer,
                 image_url = imageUrl,
@@ -90,6 +93,7 @@ private fun scrapeOffer(inventoryPage: String): Offer {
                 priceTerm = term,
                 source = source,
                 vin = vin,
+                inventory_link = inventoryPage,
                 createdDate = Date()
         )
     }
@@ -116,11 +120,7 @@ class TorrenceUsedCarOfferScrape(private val offerDao: OfferDao,
     @Async
     override fun scrape(): CompletableFuture<ScrapeResult> {
         return try {
-            val offerPages = allOfferPages()
-            val offerFutures = offerPages.map { CompletableFuture.supplyAsync(Supplier { scrapeOffer(it) }, executorService) }.toTypedArray()
-
-            CompletableFuture.allOf(*offerFutures)
-            val offers = offerFutures.map { it.get() }
+            val offers = allOfferPages().map { scrapeOffer(it, dealershipId) }
 
             logger.info("Deleting old offers")
             offerDao.deleteAllBySourceAndOfferType(source=source, offerType = OfferType.USED_CAR)
@@ -142,7 +142,7 @@ fun main(args: Array<String>){
     val offerPages = allOfferPages()
     offerPages.forEach { page ->
         try {
-            println(scrapeOffer(page))
+            println(scrapeOffer(page, 1))
         } catch (e: Exception){
             logger.error("Unable to scrape offer from $page", e)
         }

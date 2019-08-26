@@ -1,5 +1,6 @@
 package com.stonesoupprogramming.automotivecms.offers.offerscraper.selenium
 
+import org.openqa.selenium.By
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
@@ -83,4 +84,8 @@ fun <R> RemoteWebDriver.use(block: (RemoteWebDriver) -> R): R {
 
 fun waitUntilClickable(driver: RemoteWebDriver, webElement: WebElement, timeout: Long = 10){
     WebDriverWait(driver, timeout).until(ExpectedConditions.elementToBeClickable(webElement))
+}
+
+fun waitUntilAllPresent(driver: RemoteWebDriver, by: By, timeout: Long = 10){
+    WebDriverWait(driver, timeout).until(ExpectedConditions.presenceOfAllElementsLocatedBy(by))
 }
