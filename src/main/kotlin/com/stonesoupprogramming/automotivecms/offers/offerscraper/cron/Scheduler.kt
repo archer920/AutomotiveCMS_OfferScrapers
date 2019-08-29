@@ -18,12 +18,6 @@ private fun String.isValidCron(): Boolean = CronSequenceGenerator.isValidExpress
 class Scheduler(
         @Qualifier("MBZLA New Car") private val mbzlaNewCarOfferScrape: ScrapeService,
         @Qualifier("MBZLA Used Car") private val mbzlaUsedCarOfferScrape: ScrapeService,
-        @Qualifier("Car and Driver") private val carAndDriverScrape: ScrapeService,
-        @Qualifier("Cars.com") private val carsScraper: ScrapeService,
-        @Qualifier("Edmunds") private val edmundsScraper: ScrapeService,
-        @Qualifier("Jalopnik") private val jalopnikScraper: ScrapeService,
-        @Qualifier("Left Lane News") private val leftLaneNewsScraper: ScrapeService,
-        @Qualifier("Motor Trend") private val motorTrendScraper: ScrapeService,
         @Qualifier("Torrence New Car") private val torrenceNewCarOfferScrape: ScrapeService,
         @Qualifier("Torrence Used Car") private val torrenceUsedCarOfferScrape: ScrapeService) {
 
@@ -41,14 +35,12 @@ class Scheduler(
             throw IllegalArgumentException("$EVERY_30_MINUTES is not a valid cron expression")
         }
 
-        //Offers are business critical and should scrape on startup
-        //Publications can run on a normal schedule
         try {
             mapOf(
-                    "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
-                    "Torrence New Car Offers" to torrenceNewCarOfferScrape,
                     "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
-                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
+                    "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
+                    "Torrence New Car Offers" to torrenceNewCarOfferScrape
             ).forEach {
                 logger.info("Starting scrape for ${it.key}")
                 it.value.scrape().thenAccept { sr ->
@@ -90,35 +82,5 @@ class Scheduler(
         val result = mbzlaUsedCarOfferScrape.scrape()
 
         logger.info("MBZLA Used Car Scrape Result = ${result.get()}")
-    }
-
-    @Scheduled(cron = DAILY)
-    fun scrapeCarAndDriver(){
-        logger.info("Starting Car and Driver Scrape")
-        logger.info("Car and Driver Scrape Result = ${carAndDriverScrape.scrape().get()}")
-    }
-
-    @Scheduled(cron = WEEKLY)
-    fun scrapeEdmunds() {
-        logger.info("Starting Edmunds Scrape")
-        logger.info("Edmunds Scrape Result = ${edmundsScraper.scrape().get()}")
-    }
-
-    @Scheduled(cron = DAILY)
-    fun scrapeCars() {
-        logger.info("Starting Cars.com Scrape")
-        logger.info("Cars.com Scrape Result = ${carsScraper.scrape().get()}")
-    }
-
-    @Scheduled(cron = DAILY)
-    fun scrapeJalopnik(){
-        logger.info("Starting Jalopnik Scrape")
-        logger.info("Jalopnik Scrape Result = ${carAndDriverScrape.scrape().get()}")
-    }
-
-    @Scheduled(cron = DAILY)
-    fun scrapeLeftLaneNews(){
-        logger.info("Starting Left Lane News Scrape")
-        logger.info("Left Lane News Scrape Result = ${carAndDriverScrape.scrape().get()}")
     }
 }
