@@ -38,9 +38,10 @@ class Scheduler(
         try {
             mapOf(
                     "MBZLA New Car Offers" to mbzlaNewCarOfferScrape,
-                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape,
-                    "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
-                    "Torrence New Car Offers" to torrenceNewCarOfferScrape
+                    "MBZLA Used Cars Offers" to mbzlaUsedCarOfferScrape
+                    //Disabling. Torrence doesn't have a dealership id yet
+//                    "Torrence Used Car Offers" to torrenceUsedCarOfferScrape,
+//                    "Torrence New Car Offers" to torrenceNewCarOfferScrape
             ).forEach {
                 logger.info("Starting scrape for ${it.key}")
                 it.value.scrape().thenAccept { sr ->
